@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waste Food Management & Donation</title>
+<style>
+/* ------------------------------------------------------------------ */
+/* BASE STYLES & TYPOGRAPHY */
+/* ------------------------------------------------------------------ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Clean background - you can change this color if needed */
+    background: #e6f7f7; 
+    margin: 0;
+    color: #333;
+    line-height: 1.6;
+}
+
+#home {
+    min-height: calc(100vh - 150px); 
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    flex-direction: column; 
+    position: relative; 
+    overflow: hidden; 
+    background: none; 
+}
+
+/* Ensure home is displayed and centered when active */
+#home.active {
+    display: flex; 
+}
+
+#home .card {
+    /* Clean white background, prominent shadow for focus */
+    background: white; 
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); 
+    text-align: center;
+    max-width: 600px; 
+    margin: 150px auto; 
+    border: 3px solid #008080; 
+    z-index: 20; 
+    position: relative;
+    animation: pulse-focus 2s infinite alternate; 
+}
+
+/* --- ANIMATION STYLES (PULSE) --- */
+@keyframes pulse-focus {
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    100% { 
+        transform: scale(1.02); 
+        box-shadow: 0 0 50px rgba(0, 128, 128, 0.9); /* Stronger Teal glow */
+    }
+}
+
+/* General Styles */
+header {
+    background: #008080; /* Primary Teal Header */
+    padding: 24px;
+    text-align: center;
+    color: white;
+    font-weight: 700;
+    font-size: 26px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+h2, h3, h4 {
+    color: #005a5a;
+    margin-top: 0;
+    font-weight: 600;
+}
+h2 { 
+    text-align: center; 
+    font-size: 24px; 
+    margin-bottom: 20px; 
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 12px 0;
+    background: #5e6472;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+nav a {
+    color: white;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+nav a:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+section {
+    display: none; /* Hide all sections by default */
+    padding: 20px 0; 
+    min-height: calc(100vh - 120px); 
+}
+section.active {
+    display: block;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 800px;
+    margin: 50px auto; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
+}
+/* Admin Panel Specific Card Styling */
+#admin .card {
+    background: #e6f7f7; 
+    border: 2px solid #008080;
+    box-shadow: 0 0 15px rgba(0, 128, 128, 0.3);
+}
+
+.muted {
+    color: #777;
+    font-size: 14px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.form-group {
+    flex: 1 1 250px; 
+    margin-bottom: 15px;
+}
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #444;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 12px; 
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    outline: none;
+    box-sizing: border-box; 
+    transition: border-color 0.3s;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: #008080; 
+}
+textarea {
+    min-height: 100px;
+}
+
+.btn {
+    background: #008080; 
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.1s;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+.btn:hover {
+    background: #006666;
+}
+.btn.gray {
+    background: #ccc;
+    color: #333;
+    text-transform: none;
+}
+.btn.gray:hover {
+    background: #b3b3b3;
+}
+.btn.small {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    text-transform: none;
+    font-weight: 500;
+}
+.btn.danger {
+    background: #e74c3c; 
+}
+.btn.danger:hover {
+    background: #c0392b;
+}
+.btn.success {
+    background: #2ecc71; 
+}
+.btn.success:hover {
+    background: #27ae60;
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: 25px; 
+    /* This setting ensures a 2x2 layout on larger screens */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    align-items: stretch; 
+    margin-top: 20px;
+}
+
+.donor-col {
+    background: white; 
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    min-height: 200px; 
+}
+.donor-col h3 {
+    border-bottom: 2px solid #008080;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.notification {
+    background: #fff;
+    border-left: 5px solid #008080;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+}
+.food-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 15px;
+    border-radius: 8px;
+    overflow: hidden; 
+    table-layout: fixed; 
+}
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    word-wrap: break-word; 
+    font-size: 14px; 
+}
+th {
+    background: #e9ecef;
+    color: #444;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+tr:last-child td {
+    border-bottom: none;
+}
+td button { margin-right: 5px; } 
+
+/* Status Chips */
+.status-chip {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 11px;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.status-accepted { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.status-cancelled { background: #f0f8ff; color: #3c5aa6; border: 1px solid #cfe2f3; }
+.status-completed { background: #e6ffed; color: #1a7d32; border: 1px solid #c8f5d6; }
+.status-archived { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+.status-success { background: #e6ffed; color: #1a7d32; border: 1px solid #c8f5d6; } /* Used for 'Available' food */
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+.modal {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+@media(max-width: 1240px) {
+    .card { max-width: 95%; }
+}
+@media(max-width: 992px) {
+    .dashboard-grid, .admin-data-grid { grid-template-columns: 1fr; }
+}
+@media(max-width: 600px) {
+    header { font-size: 22px; padding: 18px; }
+    nav { flex-direction: column; gap: 5px; padding: 10px; }
+    .form-row { gap: 10px; }
+    .card { padding: 20px; }
+    .btn { padding: 10px 18px; font-size: 13px; }
+    th, td { padding: 8px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<header>WASTE FOOD MANAGEMENT & DONATION</header>
+<nav>
+<a href="#" onclick="show('home')">Home</a>
+<a href="#" onclick="show('about')">About</a>
+<a href="#" onclick="show('services')">Services</a>
+<a href="#" onclick="show('contact')">Contact</a>
+<a href="#" onclick="show('login')">Login</a>
+</nav>
+
+<section id="home" class="active">
+    <div class="card">
+        <h2>"FOOD BELONGS ON PLATES, NOT IN LANDFILLS" 🍽️</h2>
+        <p class="muted">When we throw food away, we're also throwing away the chance to feed someone in need.</p>
+    </div>
+</section>
+
+<section id="about">
+    <div class="card">
+        <h2>About Us</h2>
+        <p>We believe no food should go to waste while people go hungry.</p>
+        <p>Our mission is simple nut powerful:"Bridge the gap between excess and need".Our platform connects food donors (restaurants, caterers, individuals) with verified requesters to ensure surplus food reaches those in need quickly and efficiently.</p>
+    </div>
+</section>
+
+<section id="services">
+    <div class="card">
+        <h2>Our Services</h2>
+        <div class="dashboard-grid">
+            <div class="donor-col">
+                <h3>Food Collection</h3>
+                <p>We collect surplus food from donors, including homes, restaurants, and events.</p>
+            </div>
+            
+            <div class="donor-col">
+                <h3>Schedule Pickup</h3>
+                <p>Schedule pickups from restaurants, households and events.</p>
+            </div>
+            
+            <div class="donor-col">
+                <h3>For Requesters</h3>
+                <p>We allow requesters to accept the food they want from available donations and also allow them to make requests.</p>
+            </div>
+            
+            <div class="donor-col">
+                <h3>Real-Time Tracking</h3>
+                <p>Track your donations and requests through our app for full transparency.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <div class="card" style="max-width:620px;margin:32px auto;">
+        <h2>Contact Our Team 📞</h2>
+        <p class="muted" style="text-align:center;margin-bottom: 25px;">Reach out to us directly using the details below.</p>
+        <div style="font-size: 16px; line-height: 2.2;">
+            <p><strong><span style="color: #008080;">Phone:</span></strong> +91 98705 43210</p>
+            <p><strong><span style="color: #008080;">Email:</span></strong> support@wastefoodmgmt.org</p>
+            <p><strong><span style="color: #008080;">Address:</span></strong> 123 Food Savers , Bangalore, Karnataka 560001, India</p>
+        </div>
+    </div>
+</section>
+
+<section id="login">
+<div class="card" style="max-width:480px;margin:32px auto;">
+<h2>Login</h2>
+<form onsubmit="login(event)">
+<div class="form-group"><label>Username / Email</label><input id="username" required></div>
+<div class="form-group"><label>Password</label><input id="password" type="password" required></div>
+<div class="form-group"><label>Role</label><select id="role" required>
+<option value="">-- Choose role --</option>
+<option value="admin">Admin</option>
+<option value="donor">Donor</option>
+<option value="requester">Requester</option>
+</select></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">
+<button class="btn" type="submit">Login</button>
+<span class="muted">New? <span class="btn small gray" onclick="show('register')">Register</span></span>
+</div>
+<p id="loginMessage" class="muted" style="margin-top:10px;color:red;"></p>
+</form>
+</div>
+</section>
+
+<section id="register">
+<div class="card" style="max-width:620px;margin:28px auto;">
+<h2>Create Account</h2>
+<form onsubmit="register(event)">
+<div class="form-row">
+<div class="form-group"><label>Full name</label><input id="regName" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')" required></div>
+<div class="form-group"><label>Username / Email</label><input id="regUser" required></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Password</label><input id="regPass" type="password" required></div>
+<div class="form-group"><label>Role</label>
+<select id="regRole" required>
+<option value="">-- select --</option>
+<option value="donor">Donor</option>
+<option value="requester">Requester</option>
+</select></div>
+</div>
+<div style="margin-top:15px"><button class="btn" type="submit">Register</button></div>
+<p id="regMessage" class="muted" style="margin-top:15px;"></p>
+</form>
+</div>
+</section>
+
+<section id="admin">
+<div class="card">
+<h2>Admin Dashboard</h2>
+<div class="dashboard-grid">
+    <div class="donor-col">
+        <h3>Users</h3>
+        <button class="btn small gray" onclick="toggleDisplay('userList'); showUsers();">View/Manage Users</button>
+        <div id="userList" style="display:none; margin-top: 15px;"></div>
+    </div>
+    <div class="donor-col">
+        <h3>Donations</h3>
+        <button class="btn small gray" onclick="toggleDisplay('donationList'); showDonations();">View/Manage Donations</button>
+        <div id="donationList" style="display:none; margin-top: 15px;"></div>
+    </div>
+
+    <div class="donor-col">
+        <h3>Requests</h3>
+        <button class="btn small gray" onclick="toggleDisplay('adminRequests'); showRequests();">View All Requests</button>
+        <div id="adminRequests" style="display:none; margin-top: 15px;"></div>
+    </div>
+    <div class="donor-col">
+        <h3>Feedback</h3>
+        <button class="btn small gray" onclick="toggleDisplay('feedbackList'); showFeedback();">View Feedback</button>
+        <div id="feedbackList" style="display:none; margin-top: 15px;"></div>
+    </div>
+</div>
+
+<div style="text-align:center;margin-top:25px; display:flex; justify-content: center; gap: 15px;">
+<button class="btn success" onclick="showAllDonationsModal()">All Donations Report</button>
+<button class="btn gray" onclick="logout()">Logout</button>
+</div>
+</div>
+</section>
+<section id="donor">
+<div class="card">
+<h2>Donor Dashboard</h2>
+<div class="dashboard-grid">
+    <div class="donor-col">
+        <h3>Add Donation</h3>
+        <form onsubmit="addFood(event)" id="addFoodForm">
+            <div class="form-group"><label>Food Name</label><input id="foodName" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')" required></div>
+            <div class="form-group"><label>Type</label><select id="foodType" required><option>Veg</option><option>Non-Veg</option></select></div>
+            <div class="form-group"><label>Quantity (e.g., 200gms)</label><input id="foodQty" required></div>
+            <div class="form-group"><label>Location</label><input id="foodLoc" required></div>
+            <div class="form-group"><label>Time</label><input type="time" id="foodTime" required></div>
+            <div class="form-group"><label>Image</label><input type="file" id="foodImage" ></div> 
+            <button class="btn" type="submit">Add Donation</button>
+        </form>
+    </div>
+
+    <div class="donor-col">
+        <h3>Requests for your donations</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <button class="btn small" onclick="toggleDisplay('donorRequests'); viewRequests();">View Requests</button>
+            <button class="btn small gray" onclick="clearDonorRequests()">Hide Panel</button>
+        </div>
+        <div id="donorRequests" style="display:none; margin-top: 15px;"></div>
+    </div>
+
+    <div class="donor-col">
+        <h3>Your Donations</h3>
+        <button class="btn small gray" onclick="toggleDisplay('donorFoods'); refreshDonorFoods();">View Your Donations</button>
+        <div id="donorFoods" style="display:none; margin-top: 15px;"></div>
+    </div>
+
+    <div class="donor-col">
+        <h3>Feedback</h3>
+        <button class="btn small gray" onclick="toggleDisplay('donorFeedbackList'); viewFeedbacks();">View Feedback</button>
+        <div id="donorFeedbackList" style="display:none; margin-top: 15px;"></div>
+    </div>
+
+</div>
+<div style="text-align:center;margin-top:25px; display:flex; justify-content: center; gap: 15px;">
+<button class="btn gray" onclick="logout()">Logout</button>
+</div>
+</div>
+</section>
+<section id="requester">
+<div class="card">
+<h2>Requester Dashboard</h2>
+<div class="dashboard-grid">
+    <div class="donor-col">
+        <h3>Available Food</h3>
+        <button class="btn small gray" onclick="toggleDisplay('availableFood'); viewAvailableFood();">View Food</button>
+        <div id="availableFood" style="display:none; margin-top: 15px;"></div>
+    </div>
+
+    <div class="donor-col">
+        <h3>My Requests</h3>
+        <button class="btn small gray" onclick="toggleDisplay('myRequestsList'); viewMyRequests();">View My Requests</button>
+        <div id="myRequestsList" style="display:none; margin-top: 15px;"></div>
+    </div>
+    
+    <div class="donor-col">
+        <h3>Send Request (Manual)</h3>
+        <form onsubmit="sendRequest(event)" id="manualRequestForm">
+            <div class="form-group"><label>Food Type</label><input id="reqFoodType" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')" required></div>
+            <div class="form-group"><label>Quantity (e.g., 200gms)</label><input id="reqQty" required></div>
+            <div class="form-group"><label>Phone</label><input id="reqPhone" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+            <div class="form-group"><label>Location</label><input id="reqLoc" required></div>
+            <div class="form-group"><label>Time</label><input type="time" id="reqTime" required></div>
+            <button class="btn" type="submit">Send Request</button>
+        </form>
+    </div>
+
+    <div class="donor-col">
+        <h3>Send Feedback</h3>
+        <form onsubmit="sendFeedback(event)">
+            <div class="form-group"><label>Donor Name (or ID)</label><input id="fbDonor" required></div>
+            <div class="form-group">
+                <label>Rating (1-5)</label>
+                <input type="number" id="fbRating" min="1" max="5" value="5" required>
+            </div>
+            <div class="form-group"><label>Message</label><textarea id="fbMsg" required></textarea></div>
+            <button class="btn" type="submit">Send Feedback</button>
+        </form>
+    </div>
+
+</div>
+<div style="text-align:center;margin-top:25px; display:flex; justify-content: center; gap: 15px;">
+<button class="btn gray" onclick="logout()">Logout</button>
+</div>
+</div>
+</section>
+<div id="modalDonations" class="modal-backdrop">
+    <div class="modal">
+        <h3>All Donations</h3>
+        <table id="allDonationsTable">
+            <thead>
+                <tr><th>Food Name</th><th>Type</th><th>Qty</th><th>Donor</th><th>Date</th><th>Time</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div style="text-align:right;margin-top:20px">
+            <button class="btn gray" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===================================================================================
+// ADMIN CREDENTIALS (for login only)
+// ===================================================================================
+
+const initialUsers = [
+    { name: "Admin User", username: "admin", password: "123", role: "admin" },
+];
+
+// --- DATA INITIALIZATION LOGIC ---
+let foods = JSON.parse(localStorage.getItem('foods') || '[]');
+let requests = JSON.parse(localStorage.getItem('requests') || '[]');
+let feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+let currentUser = null;
+let foodCounter = 100; // Counter for unique food IDs
+let requestCounter = 500; // Counter for unique request IDs
+
+
+// Load saved users or initialize with defaults if storage is empty
+let savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+let users;
+
+if (savedUsers.length === 0) {
+    // If no users are saved (first load on a new machine/browser)
+    users = [...initialUsers]; // Start with the default admin
+    localStorage.setItem('users', JSON.stringify(users));
+    console.log(`Initialized users with defaults: ${users.length} total users.`);
+} else {
+    // Check if the default admin is missing from the saved list (safeguard)
+    const adminExists = savedUsers.some(u => u.username === initialUsers[0].username && u.role === initialUsers[0].role);
+    if (!adminExists) {
+        // If the admin was somehow deleted, re-add them to the loaded list
+        users = [...initialUsers, ...savedUsers.filter(u => u.username !== initialUsers[0].username)];
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log(`Re-added missing Admin user: ${users.length} total users.`);
+    } else {
+        users = savedUsers;
+        console.log(`Loaded ${users.length} users from storage.`);
+    }
+}
+// END OF CORRECTED INITIALIZATION LOGIC
+
+
+function show(sec){
+    document.querySelectorAll('section').forEach(s => {
+        s.classList.remove('active');
+    });
+    document.getElementById(sec).classList.add('active');
+    document.body.scrollTop = 0; 
+    document.documentElement.scrollTop = 0; 
+}
+
+function toggleDisplay(id){let el=document.getElementById(id); el.style.display=(el.style.display==='none')?'block':'none';}
+
+function getCurrentUserIdentifier() {
+    return currentUser ? (currentUser.username) : 'Unknown';
+}
+function getCurrentUserName() {
+    return currentUser ? (currentUser.name || currentUser.username) : 'Unknown';
+}
+
+// REGISTER
+function register(e){e.preventDefault();
+    let name=document.getElementById('regName').value;
+    let user=document.getElementById('regUser').value;
+    let pass=document.getElementById('regPass').value;
+    let role=document.getElementById('regRole').value;
+    
+    // Security check: Prevent registration as admin
+    if(role === 'admin') {
+        document.getElementById('regMessage').innerText='Admin registration is not allowed.';
+        document.getElementById('regMessage').style.color = 'red';
+        return;
+    }
+
+if(users.some(u=>u.username===user)){document.getElementById('regMessage').innerText='Username exists';return;}
+    users.push({name,username:user,password:pass,role});
+    localStorage.setItem('users',JSON.stringify(users));
+
+document.getElementById('regMessage').innerText='Registered successfully! Please login.';
+    document.getElementById('regMessage').style.color = '#2ecc71';
+
+document.getElementById('register').querySelector('form').reset();
+}
+
+// LOGIN (Flexible login: username or email)
+function login(e){
+    e.preventDefault();
+
+    let userOrEmail=document.getElementById('username').value;
+    let pass=document.getElementById('password').value;
+    let role=document.getElementById('role').value;
+
+    let u = users.find(x => 
+        (x.username === userOrEmail || x.email === userOrEmail) && 
+        x.password === pass && 
+        x.role === role
+    );
+
+    let loginMessageElement = document.getElementById('loginMessage');
+
+    if(!u){
+        loginMessageElement.innerText = 'Invalid credentials or role combination.';
+        return;
+    }
+
+    // Login successful
+    currentUser = u;
+    loginMessageElement.innerText = '';
+
+    // Redirect to the correct dashboard based on role 
+    if(role === 'admin') show('admin');
+    if(role === 'donor') show('donor');
+    if(role === 'requester') show('requester');
+
+    // Refresh dashboards on login
+    refreshDonorFoods(); 
+    viewRequests(); 
+    viewMyRequests(); 
+    viewAvailableFood();
+}
+
+// LOGOUT
+function logout(){
+    currentUser=null;
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('role').value = '';
+    show('home');
+}
+
+// ===== ADMIN FUNCTIONS =====
+
+function showUsers(){
+    let d=document.getElementById('userList'); d.innerHTML='';
+    if(users.length===0){d.innerHTML="<p class='muted'>No users available.</p>";return;}
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr>';
+    
+    // Sort users for display: Admin first, then others alphabetically by username
+    const sortedUsers = [...users].sort((a, b) => {
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (a.role !== 'admin' && b.role === 'admin') return 1;
+        return a.username.localeCompare(b.username);
+    });
+
+    sortedUsers.forEach((u,i)=>{
+        // Find the original index for editing/deletion
+        let originalIndex = users.findIndex(user => user.username === u.username);
+
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${u.name}</td><td>${u.username}</td><td>${u.role}</td>
+        <td>
+        <button class="btn small" onclick="editUser(${originalIndex})">Edit</button>
+        ${u.role !== 'admin' ? // Prevent admin from deleting themselves for stability
+            `<button class="btn gray small" onclick="deleteUser(${originalIndex})">Delete</button>` :
+            `<span class="muted">Default</span>`
+        }
+        </td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function editUser(idx){
+    let u=users[idx];
+    let newName=prompt("Name:",u.name); if(!newName) return;
+    let newUser=prompt("Username:",u.username); if(!newUser) return;
+    let newRole=prompt("Role (admin/donor/requester):",u.role); if(!newRole) return;
+    
+    // Prevent accidental role change from admin
+    if (u.role === 'admin' && newRole !== 'admin') {
+        if (!confirm("Warning: Changing the default Admin role can prevent future admin login. Continue?")) return;
+    }
+
+    u.name=newName; u.username=newUser; u.role=newRole;
+    localStorage.setItem('users',JSON.stringify(users));
+    showUsers();
+}
+
+function deleteUser(idx){
+    if(users[idx].role === 'admin') {
+        alert("Cannot delete the default Admin account for system stability.");
+        return;
+    }
+    if(confirm("Delete user?")){
+        users.splice(idx,1); 
+        localStorage.setItem('users',JSON.stringify(users)); 
+        showUsers();
+    }
+}
+
+function showDonations(){
+    let d=document.getElementById('donationList'); d.innerHTML='';
+    if(foods.length===0){d.innerHTML="<p class='muted'>No donations.</p>"; return;}
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Food</th><th>Type</th><th>Qty</th><th>Donor</th><th>Location</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr>';
+    foods.forEach((f,i)=>{
+        let status = f.status || 'Available';
+        let statusClass = status==='Available'?'status-success':status==='Requested'?'status-pending':status==='Completed'?'status-completed':'status-archived';
+        let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${f.name}</td><td>${f.type}</td><td>${f.qty}</td><td>${f.donor}</td><td>${f.loc||'N/A'}</td><td>${f.date||'N/A'}</td><td>${f.time}</td>
+        <td>${statusHtml}</td>
+        <td>
+        <button class="btn small" onclick="editDonation(${i})">Edit</button>
+        <button class="btn gray small" onclick="deleteDonation(${i})">Delete</button>
+        </td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function editDonation(idx){
+    let f=foods[idx];
+    let n=prompt("Food Name:",f.name); if(!n) return;
+    let t=prompt("Type:",f.type); if(!t) return;
+    let q=prompt("Quantity:",f.qty); if(!q) return;
+    let l=prompt("Location:",f.loc); if(!l) return;
+    f.name=n; f.type=t; f.qty=q; f.loc=l;
+    localStorage.setItem('foods',JSON.stringify(foods));
+    showDonations(); refreshDonorFoods(); viewAvailableFood();
+}
+
+function deleteDonation(idx){if(confirm("Delete donation?")){foods.splice(idx,1); localStorage.setItem('foods',JSON.stringify(foods)); showDonations(); refreshDonorFoods(); viewAvailableFood();}}
+
+function showRequests(){
+    let d=document.getElementById('adminRequests'); d.innerHTML='';
+    if(requests.length===0){d.innerHTML="<p class='muted'>No requests.</p>";return;}
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Name</th><th>Food/Type</th><th>Qty</th><th>Donor</th><th>Location</th><th>Date</th><th>Status</th><th>Actions</th></tr>';
+    requests.forEach((r,i)=>{
+        let status = r.status || 'Pending';
+        let statusClass = status==='Pending'?'status-pending':status==='Accepted'?'status-accepted':status==='Rejected'?'status-rejected':status==='Cancelled'?'status-cancelled':status==='Completed'?'status-completed':status==='Archived'?'status-archived':'status-pending';
+        let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+        let foodInfo = r.foodName || r.foodType || 'Manual Request'; // Display food name for item-based requests, type for manual
+        let donorInfo = r.donor || (r.foodId ? (foods.find(f => f.foodId === r.foodId)?.donor || 'N/A') : 'N/A');
+        
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${r.name}</td><td>${foodInfo}</td><td>${r.qty||'N/A'}</td><td>${donorInfo}</td><td>${r.loc||'N/A'}</td><td>${r.date||'N/A'}</td>
+        <td>${statusHtml}</td>
+        <td>
+        <button class="btn small" onclick="editRequest(${i})">Edit</button>
+        <button class="btn gray small" onclick="deleteRequest(${i})">Delete</button>
+        </td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function editRequest(idx){
+    let r=requests[idx];
+    r.name=prompt("Name:",r.name)||r.name;
+    r.foodType=prompt("Food Type:",r.foodType||'')||r.foodType;
+    r.qty=prompt("Qty:",r.qty||'')||r.qty;
+    r.phone=prompt("Phone:",r.phone||'')||r.phone;
+    r.loc=prompt("Location:",r.loc||'')||r.loc;
+    r.time=prompt("Time:",r.time||'')||r.time;
+    r.status=prompt("Status:",r.status||'Pending')||r.status;
+    localStorage.setItem('requests',JSON.stringify(requests));
+    showRequests(); viewRequests(); viewMyRequests();
+}
+
+function deleteRequest(idx){if(confirm("Delete request?")){requests.splice(idx,1); localStorage.setItem('requests',JSON.stringify(requests)); showRequests(); viewRequests(); viewMyRequests();}}
+
+function showFeedback(){
+    let d=document.getElementById('feedbackList'); d.innerHTML='';
+    if(feedbacks.length===0){d.innerHTML="<p class='muted'>No feedback.</p>";return;}
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Requester</th><th>Donor</th><th>Rating</th><th>Message</th><th>Actions</th></tr>';
+    feedbacks.forEach((f,i)=>{
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${f.requester}</td><td>${f.donor}</td><td>${f.rating || 'N/A'}</td><td>${f.msg}</td>
+        <td>
+        <button class="btn small" onclick="editFeedback(${i})">Edit</button>
+        <button class="btn gray small" onclick="deleteFeedback(${i})">Delete</button>
+        </td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function editFeedback(idx){
+    let f=feedbacks[idx];
+    f.donor=prompt("Donor:",f.donor)||f.donor;
+    f.rating=prompt("Rating (1-5):",f.rating)||f.rating;
+    f.msg=prompt("Message:",f.msg)||f.msg;
+    localStorage.setItem('feedbacks',JSON.stringify(feedbacks));
+    showFeedback(); viewFeedbacks();
+}
+
+function deleteFeedback(idx){if(confirm("Delete feedback?")){feedbacks.splice(idx,1); localStorage.setItem('feedbacks',JSON.stringify(feedbacks)); showFeedback(); viewFeedbacks();}}
+
+function showAllDonationsModal() {
+    let tbody = document.getElementById('allDonationsTable').getElementsByTagName('tbody')[0];
+    tbody.innerHTML = '';
+    
+    if(foods.length === 0){
+        let tr = tbody.insertRow();
+        let td = tr.insertCell();
+        td.colSpan = 6;
+        td.innerHTML = "<p class='muted' style='text-align:center;'>No donations to report.</p>";
+    } else {
+        foods.forEach(f => {
+            let tr = tbody.insertRow();
+            tr.insertCell().innerText = f.name;
+            tr.insertCell().innerText = f.type;
+            tr.insertCell().innerText = f.qty;
+            tr.insertCell().innerText = f.donor;
+            tr.insertCell().innerText = f.date || 'N/A';
+            tr.insertCell().innerText = f.time;
+        });
+    }
+
+    document.getElementById('modalDonations').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('modalDonations').style.display = 'none';
+}
+
+// ===== DONOR FUNCTIONS =====
+
+function addFood(e){e.preventDefault();
+    let name=document.getElementById('foodName').value;
+    let type=document.getElementById('foodType').value;
+    let qty=document.getElementById('foodQty').value;
+    let loc=document.getElementById('foodLoc').value;
+    let time=document.getElementById('foodTime').value;
+    let date=new Date().toLocaleDateString();
+    let donor = getCurrentUserIdentifier(); 
+    
+    foods.push({
+        foodId: 'food_' + foodCounter++,
+        name,
+        type,
+        qty,
+        loc,
+        time,
+        date,
+        donor,
+        status: 'Available'
+    });
+    
+    localStorage.setItem('foods',JSON.stringify(foods));
+    alert("Donation added successfully!");
+    e.target.reset();
+    refreshDonorFoods();
+    viewAvailableFood(); // Update requester's view
+}
+
+function refreshDonorFoods(){
+    let d=document.getElementById('donorFoods'); d.innerHTML='';
+    if(!currentUser){ d.innerHTML="<p class='muted'>Login to view your donations.</p>"; return; }
+    let donor = getCurrentUserIdentifier();
+    let myFoods=foods.filter(f=>f.donor===donor);
+    if(myFoods.length===0){d.innerHTML="<p class='muted'>No donations yet.</p>";return;}
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Name</th><th>Type</th><th>Qty</th><th>Status</th><th>Location</th><th>Date</th><th>Time</th></tr>';
+    myFoods.forEach(f=>{
+        let status = f.status || 'Available';
+        let statusClass = status==='Available'?'status-success':status==='Requested'?'status-pending':status==='Completed'?'status-completed':'status-archived';
+        let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${f.name}</td><td>${f.type}</td><td>${f.qty}</td><td>${statusHtml}</td><td>${f.loc||'N/A'}</td><td>${f.date||'N/A'}</td><td>${f.time}</td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function viewRequests(){
+    let d=document.getElementById('donorRequests'); d.innerHTML='';
+    let donorIdentifier = getCurrentUserIdentifier();
+    let foundActiveRequest = false;
+    
+    requests.forEach((r,i)=>{
+        // Determine if the request is for this donor's food item
+        const donatedFood = foods.find(f => f.foodId === r.foodId);
+        
+        // Only show pending/accepted requests related to this donor's items
+        if (donatedFood && donatedFood.donor === donorIdentifier && r.status !== 'Completed' && r.status !== 'Rejected') {
+            foundActiveRequest = true;
+
+            let div=document.createElement('div'); div.className='notification';
+            let status = r.status || 'Pending';
+            let statusClass = status==='Pending'?'status-pending':status==='Accepted'?'status-accepted':'status-rejected';
+            let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+
+            div.innerHTML=`
+                <p><strong>Request ID: ${r.requestId}</strong> | ${statusHtml}</p>
+                <p><strong>Food:</strong> ${donatedFood.name} (${donatedFood.qty})</p>
+                <p><strong>Requester:</strong> ${r.name} (Phone: ${r.phone})</p>
+                <p><strong>Pickup Loc:</strong> ${r.loc || donatedFood.loc}</p>
+                <div style="margin-top:10px;">
+                    <button class="btn small success" onclick="acceptRequest(${i})">Accept</button>
+                    <button class="btn small danger" onclick="rejectRequest(${i})">Reject</button>
+                    ${status === 'Accepted' ? 
+                        `<button class="btn small" onclick="completeRequest(${i})">Complete</button>` : 
+                        ''
+                    }
+                </div>
+            `;
+            d.appendChild(div);
+        }
+    });
+
+    if (!foundActiveRequest) {
+        d.innerHTML = "<p class='muted'>No pending or active requests for your donations.</p>";
+    }
+}
+
+function clearDonorRequests() {
+    let d=document.getElementById('donorRequests');
+    d.style.display = 'none';
+    d.innerHTML = '';
+}
+
+function acceptRequest(idx) {
+    let r = requests[idx];
+    if (r.status === 'Accepted') return;
+    
+    // Find the corresponding food item
+    let food = foods.find(f => f.foodId === r.foodId);
+
+    if (food) {
+        // Reject all other pending requests for this same food item
+        requests.forEach(req => {
+            if (req.foodId === r.foodId && req.status === 'Pending' && req.requestId !== r.requestId) {
+                req.status = 'Rejected';
+            }
+        });
+
+        r.status = 'Accepted';
+        food.status = 'Requested'; // Mark food as requested/in-progress
+        localStorage.setItem('foods', JSON.stringify(foods));
+        localStorage.setItem('requests', JSON.stringify(requests));
+        alert(`Request ${r.requestId} from ${r.name} Accepted!`);
+        viewRequests();
+        viewMyRequests(); // Update requester's side
+    }
+}
+
+function rejectRequest(idx) {
+    let r = requests[idx];
+    if (confirm(`Reject request ${r.requestId}?`)) {
+        r.status = 'Rejected';
+        
+        // Find the corresponding food item
+        let food = foods.find(f => f.foodId === r.foodId);
+        if (food) {
+            // Check if any other requests for this food are Pending. If not, revert food status to Available.
+            const stillPending = requests.some(req => req.foodId === r.foodId && req.status === 'Pending');
+            if (!stillPending) {
+                 food.status = 'Available';
+            }
+        }
+        
+        localStorage.setItem('foods', JSON.stringify(foods));
+        localStorage.setItem('requests', JSON.stringify(requests));
+        alert(`Request ${r.requestId} Rejected.`);
+        viewRequests();
+        viewMyRequests();
+        refreshDonorFoods();
+    }
+}
+
+function completeRequest(idx) {
+    let r = requests[idx];
+    if (confirm(`Mark request ${r.requestId} as COMPLETED? This will archive the donation.`)) {
+        r.status = 'Completed';
+        
+        // Archive the corresponding food item
+        let food = foods.find(f => f.foodId === r.foodId);
+        if (food) {
+            food.status = 'Completed';
+        }
+        
+        localStorage.setItem('foods', JSON.stringify(foods));
+        localStorage.setItem('requests', JSON.stringify(requests));
+        alert(`Donation to ${r.name} Completed successfully!`);
+        viewRequests();
+        viewMyRequests();
+        refreshDonorFoods();
+        viewAvailableFood(); // Update available food list
+    }
+}
+
+function viewFeedbacks(){
+    let d=document.getElementById('donorFeedbackList'); d.innerHTML='';
+    let donorIdentifier = getCurrentUserIdentifier();
+    let myFeedback=feedbacks.filter(f=>f.donor===donorIdentifier);
+
+    if(myFeedback.length===0){d.innerHTML="<p class='muted'>No feedback received yet.</p>"; return;}
+    
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Requester</th><th>Rating</th><th>Message</th></tr>';
+    myFeedback.forEach(f=>{
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${f.requester}</td><td>${f.rating || 'N/A'} ⭐</td><td>${f.msg}</td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+
+// ===== REQUESTER FUNCTIONS =====
+
+function viewAvailableFood(){
+    let d=document.getElementById('availableFood'); d.innerHTML='';
+    let availableFoods = foods.filter(f => f.status === 'Available');
+
+    if(availableFoods.length===0){d.innerHTML="<p class='muted'>No food available for donation right now.</p>"; return;}
+    
+    availableFoods.forEach(f=>{
+        let div=document.createElement('div'); div.className='food-card';
+        div.innerHTML=`
+            <p><strong>${f.name}</strong> (${f.type})</p>
+            <p class="muted">Quantity: ${f.qty} | Donor: ${f.donor} | Loc: ${f.loc} | Time: ${f.time}</p>
+            <button class="btn small" onclick="requestFood('${f.foodId}')">Request This Food</button>
+        `;
+        d.appendChild(div);
+    });
+}
+
+function requestFood(foodId){
+    let food = foods.find(f => f.foodId === foodId);
+    if (!food || food.status !== 'Available') {
+        alert("This food is no longer available or has already been requested.");
+        viewAvailableFood();
+        return;
+    }
+    
+    let requesterName = getCurrentUserName();
+    let requesterUser = getCurrentUserIdentifier();
+    
+    // Check if the requester already has a pending/accepted request for this specific food item
+    const existingRequest = requests.some(r => r.foodId === foodId && r.requester === requesterUser && (r.status === 'Pending' || r.status === 'Accepted'));
+    if (existingRequest) {
+        alert("You already have an active request for this item.");
+        return;
+    }
+
+    // Capture requester details for the request record
+    const phone = prompt(`Enter your contact phone number for pickup of ${food.name}:`);
+    if (!phone) return;
+    
+    requests.push({
+        requestId: 'req_' + requestCounter++,
+        foodId: food.foodId,
+        foodName: food.name,
+        qty: food.qty,
+        name: requesterName,
+        requester: requesterUser,
+        phone: phone,
+        loc: food.loc, // Use food location as default pickup
+        date: new Date().toLocaleDateString(),
+        status: 'Pending'
+    });
+    
+    // Temporarily mark food as requested to prevent multiple requests until one is accepted/rejected
+    food.status = 'Requested'; 
+    
+    localStorage.setItem('requests', JSON.stringify(requests));
+    localStorage.setItem('foods', JSON.stringify(foods));
+    alert(`Request for ${food.name} sent successfully! Waiting for donor acceptance.`);
+    viewAvailableFood();
+    viewMyRequests();
+    viewRequests(); // Update donor's request panel
+}
+
+function sendRequest(e){
+    e.preventDefault();
+    let type=document.getElementById('reqFoodType').value;
+    let qty=document.getElementById('reqQty').value;
+    let phone=document.getElementById('reqPhone').value;
+    let loc=document.getElementById('reqLoc').value;
+    let time=document.getElementById('reqTime').value;
+    let requesterName = getCurrentUserName();
+    let requesterUser = getCurrentUserIdentifier();
+
+    requests.push({
+        requestId: 'req_' + requestCounter++,
+        foodType: type, // Food Type instead of Food ID for manual request
+        qty: qty,
+        phone: phone,
+        loc: loc,
+        time: time,
+        date: new Date().toLocaleDateString(),
+        name: requesterName,
+        requester: requesterUser,
+        donor: 'Unspecified', // Mark as manual, no specific donor initially
+        status: 'Pending'
+    });
+
+    localStorage.setItem('requests',JSON.stringify(requests));
+    alert("Manual Request sent successfully! Awaiting processing.");
+    e.target.reset();
+    viewMyRequests();
+    showRequests(); // Update Admin's view of all requests
+}
+
+function viewMyRequests(){
+    let d=document.getElementById('myRequestsList'); d.innerHTML='';
+    let requesterUser = getCurrentUserIdentifier();
+    let myRequests = requests.filter(r => r.requester === requesterUser);
+    
+    if(myRequests.length===0){d.innerHTML="<p class='muted'>You haven't made any requests yet.</p>"; return;}
+    
+    let table=document.createElement('table');
+    table.innerHTML='<tr><th>Food/Type</th><th>Qty</th><th>Location</th><th>Date</th><th>Status</th><th>Actions</th></tr>';
+    
+    myRequests.forEach((r, i) => {
+        let status = r.status || 'Pending';
+        let statusClass = status==='Pending'?'status-pending':status==='Accepted'?'status-accepted':status==='Rejected'?'status-rejected':status==='Completed'?'status-completed':'status-archived';
+        let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+        let foodInfo = r.foodName || r.foodType || 'Manual Request';
+
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${foodInfo}</td><td>${r.qty||'N/A'}</td><td>${r.loc||'N/A'}</td><td>${r.date||'N/A'}</td>
+        <td>${statusHtml}</td>
+        <td>
+            ${(status === 'Pending' || status === 'Accepted') ? 
+                `<button class="btn danger small" onclick="cancelRequest('${r.requestId}')">Cancel</button>` : 
+                `<span class="muted">No actions</span>`
+            }
+        </td>`;
+        table.appendChild(tr);
+    });
+    d.appendChild(table);
+}
+
+function cancelRequest(requestId) {
+    let reqIndex = requests.findIndex(r => r.requestId === requestId);
+    if (reqIndex === -1) return;
+    
+    let r = requests[reqIndex];
+    if (confirm(`Are you sure you want to cancel your request for ${r.foodName || r.foodType}?`)) {
+        
+        // Find the corresponding food item
+        let food = foods.find(f => f.foodId === r.foodId);
+        
+        if (food) {
+            // Check if any other requests for this food are Pending. If not, revert food status to Available.
+            const stillPending = requests.some((req, i) => req.foodId === r.foodId && req.status === 'Pending' && i !== reqIndex);
+            if (!stillPending) {
+                 food.status = 'Available';
+            }
+        }
+
+        r.status = 'Cancelled';
+        
+        localStorage.setItem('foods', JSON.stringify(foods));
+        localStorage.setItem('requests', JSON.stringify(requests));
+        alert(`Request ${requestId} cancelled.`);
+        viewMyRequests();
+        viewAvailableFood();
+        viewRequests(); // Update donor's view
+    }
+}
+
+function sendFeedback(e){
+    e.preventDefault();
+    let donor=document.getElementById('fbDonor').value;
+    let rating=document.getElementById('fbRating').value;
+    let msg=document.getElementById('fbMsg').value;
+    let requester = getCurrentUserIdentifier();
+
+    feedbacks.push({
+        donor,
+        rating: parseInt(rating),
+        msg,
+        requester,
+        date: new Date().toLocaleDateString()
+    });
+
+    localStorage.setItem('feedbacks',JSON.stringify(feedbacks));
+    alert("Feedback sent successfully!");
+    e.target.reset();
+    showFeedback(); // Update admin view
+    viewFeedbacks(); // Update donor view
+}
+
+// Initial display setup
+document.addEventListener('DOMContentLoaded', () => {
+    show('home');
+});
+</script>
+</body>
+</html>
