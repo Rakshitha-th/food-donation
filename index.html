@@ -15,6 +15,14 @@ body {
     margin: 0;
     color: #333;
     line-height: 1.6;
+    display: flex; /* Use flexbox for body */
+    flex-direction: column; /* Stack children vertically */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+}
+
+/* Add a style for the new semantic main container to handle section height */
+main {
+    flex: 1; /* Allows main content to grow and push the footer down */
 }
 
 #home {
@@ -323,6 +331,17 @@ td button { margin-right: 5px; }
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 
+/* Footer Styling */
+footer {
+    background: #333; /* Dark gray for footer */
+    color: #fff;
+    text-align: center;
+    padding: 15px 20px;
+    font-size: 14px;
+    margin-top: 20px; /* Add some margin above */
+    width: 100%;
+}
+
 @media(max-width: 1240px) {
     .card { max-width: 95%; }
 }
@@ -349,6 +368,7 @@ td button { margin-right: 5px; }
 <a href="#" onclick="show('login')">Login</a>
 </nav>
 
+<main>
 <section id="home" class="active">
     <div class="card">
         <h2>"FOOD BELONGS ON PLATES, NOT IN LANDFILLS" 🍽️</h2>
@@ -571,6 +591,7 @@ td button { margin-right: 5px; }
 </div>
 </div>
 </section>
+
 <div id="modalDonations" class="modal-backdrop">
     <div class="modal">
         <h3>All Donations</h3>
@@ -585,12 +606,13 @@ td button { margin-right: 5px; }
         </div>
     </div>
 </div>
+</main>
+
+<footer>
+    &copy; 2025 Waste Food Management & Donation. All rights reserved.
+</footer>
 
 <script>
-// ===================================================================================
-// ADMIN CREDENTIALS (for login only)
-// ADMIN PASSWORD: 'pass'
-// ===================================================================================
 
 const initialUsers = [
     { name: "Admin User", username: "admin", password: "pass", role: "admin" },
@@ -903,7 +925,7 @@ function showAllDonationsModal() {
             tr.insertCell().innerText = f.name;
             tr.insertCell().innerText = f.type;
             tr.insertCell().innerText = f.qty;
-            tr.insertcell().innerText = f.phone;
+            tr.insertCell().innerText = f.phone;
             tr.insertCell().innerText = f.donor;
             tr.insertCell().innerText = f.date || 'N/A';
             tr.insertCell().innerText = f.time;
@@ -968,9 +990,6 @@ function refreshDonorFoods(){
     d.appendChild(table);
 }
 
-// -------------------------------------------------------------------------------------------------------------------------
-// *** MODIFIED viewRequests() to include Manual Requests for ALL donors ***
-// -------------------------------------------------------------------------------------------------------------------------
 function viewRequests(){
     let d=document.getElementById('donorRequests'); d.innerHTML='';
     let donorIdentifier = getCurrentUserIdentifier();
