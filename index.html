@@ -5,12 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Waste Food Management & Donation</title>
 <style>
-/* ------------------------------------------------------------------ */
-/* BASE STYLES & TYPOGRAPHY */
-/* ------------------------------------------------------------------ */
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Clean background - you can change this color if needed */
     background: #e6f7f7; 
     margin: 0;
     color: #333;
@@ -46,6 +43,24 @@ body {
     position: relative;
     animation: pulse-focus 2s infinite alternate; 
 }
+    footer {
+    background: #005a5a; /* Darker teal */
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px; 
+    font-size: 14px;
+    width: 100%;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.15);
+}
+footer a {
+    color: #aed9e0; /* Light link color */
+    text-decoration: none;
+    margin: 0 10px;
+    transition: color 0.3s;
+}
+footer a:hover {
+    color: white;
 
 /* --- ANIMATION STYLES (PULSE) --- */
 @keyframes pulse-focus {
@@ -585,18 +600,16 @@ td button { margin-right: 5px; }
         </div>
     </div>
 </div>
+    <footer>
+    <p>&copy; 2024 Waste Food Management & Donation. All rights reserved.</p>
+    
+</footer>
 
 <script>
-// ===================================================================================
-// ADMIN CREDENTIALS (for login only)
-// ADMIN PASSWORD: 'pass'
-// ===================================================================================
 
 const initialUsers = [
     { name: "Admin User", username: "admin", password: "pass", role: "admin" },
 ];
-
-// --- DATA INITIALIZATION LOGIC ---
 let foods = [];
 let requests = [];
 let feedbacks = [];
@@ -604,8 +617,6 @@ let currentUser = null;
 let foodCounter = 100; // Counter for unique food IDs
 let requestCounter = 500; // Counter for unique request IDs
 let users = [];
-
-// Initialize or Load Data from Local Storage
 function initializeData() {
     foods = JSON.parse(localStorage.getItem('foods') || '[]');
     requests = JSON.parse(localStorage.getItem('requests') || '[]');
@@ -613,7 +624,6 @@ function initializeData() {
     
     let savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
     
-    // Check if the default admin exists in the saved list
     const adminExists = savedUsers.some(u => u.username === initialUsers[0].username && u.role === initialUsers[0].role);
 
     if (savedUsers.length === 0 || !adminExists) {
@@ -633,10 +643,7 @@ function initializeData() {
         console.log(`Loaded ${users.length} users from storage. Admin password ensured to be 'pass'.`);
     }
 }
-
-// Call initialize on load
 initializeData();
-
 
 function show(sec){
     document.querySelectorAll('section').forEach(s => {
@@ -656,7 +663,6 @@ function getCurrentUserName() {
     return currentUser ? (currentUser.name || currentUser.username) : 'Unknown';
 }
 
-// REGISTER
 function register(e){e.preventDefault();
     let name=document.getElementById('regName').value;
     let user=document.getElementById('regUser').value;
@@ -1375,3 +1381,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
