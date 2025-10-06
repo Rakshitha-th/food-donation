@@ -202,6 +202,15 @@ textarea {
 .btn.success:hover {
     background: #27ae60;
 }
+.btn.reset {
+    background: #f39c12; 
+    padding: 8px 16px;
+    font-size: 13px;
+    margin-top: 15px;
+}
+.btn.reset:hover {
+    background: #e67e22; 
+}
 
 .dashboard-grid {
     display: grid;
@@ -580,44 +589,53 @@ td button { margin-right: 5px; }
 <script>
 // ===================================================================================
 // ADMIN CREDENTIALS (for login only)
+// ADMIN PASSWORD: 'pass'
 // ===================================================================================
 
 const initialUsers = [
-    { name: "Admin User", username: "admin", password: "123", role: "Admin" },
+    { name: "Admin User", username: "admin", password: "pass", role: "admin" },
 ];
 
 // --- DATA INITIALIZATION LOGIC ---
-let foods = JSON.parse(localStorage.getItem('foods') || '[]');
-let requests = JSON.parse(localStorage.getItem('requests') || '[]');
-let feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+let foods = [];
+let requests = [];
+let feedbacks = [];
 let currentUser = null;
 let foodCounter = 100; // Counter for unique food IDs
 let requestCounter = 500; // Counter for unique request IDs
+let users = [];
 
-
-// Load saved users or initialize with defaults if storage is empty
-let savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-let users;
-
-if (savedUsers.length === 0) {
-    // If no users are saved (first load on a new machine/browser)
-    users = [...initialUsers]; // Start with the default admin
-    localStorage.setItem('users', JSON.stringify(users));
-    console.log(`Initialized users with defaults: ${users.length} total users.`);
-} else {
-    // Check if the default admin is missing from the saved list (safeguard)
+// Initialize or Load Data from Local Storage
+function initializeData() {
+    foods = JSON.parse(localStorage.getItem('foods') || '[]');
+    requests = JSON.parse(localStorage.getItem('requests') || '[]');
+    feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+    
+    let savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Check if the default admin exists in the saved list
     const adminExists = savedUsers.some(u => u.username === initialUsers[0].username && u.role === initialUsers[0].role);
-    if (!adminExists) {
-        // If the admin was somehow deleted, re-add them to the loaded list
-        users = [...initialUsers, ...savedUsers.filter(u => u.username !== initialUsers[0].username)];
+
+    if (savedUsers.length === 0 || !adminExists) {
+        // If no users saved or admin is missing, initialize with the new default
+        users = [...initialUsers];
         localStorage.setItem('users', JSON.stringify(users));
-        console.log(`Re-added missing Admin user: ${users.length} total users.`);
+        console.log(`Initialized users with defaults: ${users.length} total users. Admin password is 'pass'.`);
     } else {
+        // Admin exists, but we ensure their password is the current default 'pass' 
+        // to handle any previous password changes or conflicts.
+        const adminIndex = savedUsers.findIndex(u => u.username === initialUsers[0].username && u.role === initialUsers[0].role);
+        if (adminIndex !== -1) {
+             savedUsers[adminIndex].password = initialUsers[0].password; 
+        }
         users = savedUsers;
-        console.log(`Loaded ${users.length} users from storage.`);
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log(`Loaded ${users.length} users from storage. Admin password ensured to be 'pass'.`);
     }
 }
-// END OF CORRECTED INITIALIZATION LOGIC
+
+// Call initialize on load
+initializeData();
 
 
 function show(sec){
@@ -813,7 +831,7 @@ function showRequests(){
         let statusClass = status==='Pending'?'status-pending':status==='Accepted'?'status-accepted':status==='Rejected'?'status-rejected':status==='Cancelled'?'status-cancelled':status==='Completed'?'status-completed':status==='Archived'?'status-archived':'status-pending';
         let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
         let foodInfo = r.foodName || r.foodType || 'Manual Request'; // Display food name for item-based requests, type for manual
-        let donorInfo = r.donor || (r.foodId ? (foods.find(f => f.foodId === r.foodId)?.donor || 'N/A') : 'N/A');
+        let donorInfo = r.donor || (r.foodId ? (foods.find(f => f.foodId === r.foodId)?.donor || 'N/A') : 'Unspecified');
         
         let tr=document.createElement('tr');
         tr.innerHTML=`<td>${r.name}</td><td>${foodInfo}</td><td>${r.qty||'N/A'}</td><td>${donorInfo}</td><td>${r.loc||'N/A'}</td><td>${r.date||'N/A'}</td>
@@ -885,6 +903,7 @@ function showAllDonationsModal() {
             tr.insertCell().innerText = f.name;
             tr.insertCell().innerText = f.type;
             tr.insertCell().innerText = f.qty;
+            tr.insertcell().innerText = f.phone;
             tr.insertCell().innerText = f.donor;
             tr.insertCell().innerText = f.date || 'N/A';
             tr.insertCell().innerText = f.time;
@@ -902,6 +921,7 @@ function closeModal() {
 
 function addFood(e){e.preventDefault();
     let name=document.getElementById('foodName').value;
+    let phone=document.getElementById('phone').value;
     let type=document.getElementById('foodType').value;
     let qty=document.getElementById('foodQty').value;
     let loc=document.getElementById('foodLoc').value;
@@ -915,6 +935,7 @@ function addFood(e){e.preventDefault();
         type,
         qty,
         loc,
+        phone,
         time,
         date,
         donor,
@@ -947,36 +968,79 @@ function refreshDonorFoods(){
     d.appendChild(table);
 }
 
+// -------------------------------------------------------------------------------------------------------------------------
+// *** MODIFIED viewRequests() to include Manual Requests for ALL donors ***
+// -------------------------------------------------------------------------------------------------------------------------
 function viewRequests(){
     let d=document.getElementById('donorRequests'); d.innerHTML='';
     let donorIdentifier = getCurrentUserIdentifier();
     let foundActiveRequest = false;
     
     requests.forEach((r,i)=>{
-        // Determine if the request is for this donor's food item
+        let isForMyFood = false;
+        let isManualRequest = false;
+        let displayName = '';
+        let displayQty = '';
+        let displayLoc = '';
+
+        // 1. Check if it's a request for a specific food item
         const donatedFood = foods.find(f => f.foodId === r.foodId);
         
-        // Only show pending/accepted requests related to this donor's items
-        if (donatedFood && donatedFood.donor === donorIdentifier && r.status !== 'Completed' && r.status !== 'Rejected') {
+        if (donatedFood && donatedFood.donor === donorIdentifier) {
+            isForMyFood = true;
+            displayName = donatedFood.name;
+            displayQty = donatedFood.qty;
+            displayLoc = r.loc || donatedFood.loc;
+        } 
+        
+        // 2. Check if it's a Manual Request (Pending for all, or Accepted by this donor)
+        // Manual requests have no foodId and the initial donor is 'Unspecified'.
+        if (!r.foodId && r.donor && (r.donor === 'Unspecified' || r.donor === donorIdentifier)) {
+             isManualRequest = true;
+             displayName = r.foodType + (r.donor === 'Unspecified' ? ' (Manual)' : ' (Accepted Manual)');
+             displayQty = r.qty || 'N/A';
+             displayLoc = r.loc || 'N/A';
+        }
+
+        // Only show active/pending requests related to this donor's items OR pending/accepted manual requests
+        if ((isForMyFood || isManualRequest) && r.status !== 'Completed' && r.status !== 'Rejected' && r.status !== 'Cancelled') {
+            
+            // If it's a manual request that was ACCEPTED by a different donor, we hide it from this view.
+            if (isManualRequest && r.status === 'Accepted' && r.donor !== donorIdentifier) {
+                return; 
+            }
+            
             foundActiveRequest = true;
 
             let div=document.createElement('div'); div.className='notification';
             let status = r.status || 'Pending';
             let statusClass = status==='Pending'?'status-pending':status==='Accepted'?'status-accepted':'status-rejected';
             let statusHtml = `<span class="status-chip ${statusClass}">${status}</span>`;
+            
+            // Action logic
+            let acceptButton = '';
+            let completeButton = '';
+            
+            if (status === 'Pending') {
+                 // For pending requests: use acceptManualRequest if manual, otherwise use acceptRequest
+                 let acceptAction = isManualRequest 
+                    ? `acceptManualRequest(${i}, '${donorIdentifier}', '${getCurrentUserName()}')` 
+                    : `acceptRequest(${i})`;
+                 acceptButton = `<button class="btn small success" onclick="${acceptAction}">Accept</button>`;
+            } else if (status === 'Accepted') {
+                 // For accepted requests: allow completion
+                 completeButton = `<button class="btn small" onclick="completeRequest(${i})">Complete</button>`;
+            }
 
             div.innerHTML=`
                 <p><strong>Request ID: ${r.requestId}</strong> | ${statusHtml}</p>
-                <p><strong>Food:</strong> ${donatedFood.name} (${donatedFood.qty})</p>
+                <p><strong>Food:</strong> ${displayName} (Qty: ${displayQty})</p>
                 <p><strong>Requester:</strong> ${r.name} (Phone: ${r.phone})</p>
-                <p><strong>Pickup Loc:</strong> ${r.loc || donatedFood.loc}</p>
+                <p><strong>Pickup Loc:</strong> ${displayLoc}</p>
                 <div style="margin-top:10px;">
-                    <button class="btn small success" onclick="acceptRequest(${i})">Accept</button>
+                    ${acceptButton}
                     <button class="btn small danger" onclick="rejectRequest(${i})">Reject</button>
-                    ${status === 'Accepted' ? 
-                        `<button class="btn small" onclick="completeRequest(${i})">Complete</button>` : 
-                        ''
-                    }
+                    ${completeButton}
                 </div>
             `;
             d.appendChild(div);
@@ -987,6 +1051,7 @@ function viewRequests(){
         d.innerHTML = "<p class='muted'>No pending or active requests for your donations.</p>";
     }
 }
+// -------------------------------------------------------------------------------------------------------------------------
 
 function clearDonorRequests() {
     let d=document.getElementById('donorRequests');
@@ -1016,8 +1081,47 @@ function acceptRequest(idx) {
         alert(`Request ${r.requestId} from ${r.name} Accepted!`);
         viewRequests();
         viewMyRequests(); // Update requester's side
+        viewAvailableFood(); // Update available food list
     }
 }
+
+// -------------------------------------------------------------------------------------------------------------------------
+// *** NEW function to handle accepting Manual Requests ***
+// -------------------------------------------------------------------------------------------------------------------------
+function acceptManualRequest(idx, donorId, donorName) {
+    let r = requests[idx];
+    
+    if (r.status === 'Accepted') return;
+
+    // Check if another donor already accepted this manual request
+    if (requests.some(req => req.requestId === r.requestId && req.status === 'Accepted')) {
+        alert("This manual request has already been accepted by another donor.");
+        return;
+    }
+
+    // 1. Update the request with the accepting donor's details
+    r.status = 'Accepted';
+    r.donor = donorId; // Tie the request to this specific donor
+    r.donorName = donorName; // Store the donor's name for display/tracking (optional, but good for tracking)
+    
+    // 2. Reject all other PENDING manual requests for the same food type 
+    requests.forEach(req => {
+        // Check if it's the same type of manual request (no foodId, Unspecified donor)
+        if (!req.foodId && req.donor === 'Unspecified' && req.foodType === r.foodType && req.status === 'Pending' && req.requestId !== r.requestId) {
+            req.status = 'Rejected';
+        }
+    });
+    
+    localStorage.setItem('requests', JSON.stringify(requests));
+    alert(`Manual Request ${r.requestId} accepted by you. Please arrange delivery/pickup!`);
+    
+    // Refresh all relevant panels
+    viewRequests();
+    viewMyRequests(); 
+    showRequests(); // Admin panel update
+}
+// -------------------------------------------------------------------------------------------------------------------------
+
 
 function rejectRequest(idx) {
     let r = requests[idx];
@@ -1040,6 +1144,7 @@ function rejectRequest(idx) {
         viewRequests();
         viewMyRequests();
         refreshDonorFoods();
+        viewAvailableFood(); // Update available food list
     }
 }
 
@@ -1048,12 +1153,14 @@ function completeRequest(idx) {
     if (confirm(`Mark request ${r.requestId} as COMPLETED? This will archive the donation.`)) {
         r.status = 'Completed';
         
-        // Archive the corresponding food item
+        // Archive the corresponding food item only if it was a specific food request
         let food = foods.find(f => f.foodId === r.foodId);
         if (food) {
             food.status = 'Completed';
         }
         
+        // Manual requests don't have a food item to archive, they are marked completed only on the request side.
+
         localStorage.setItem('foods', JSON.stringify(foods));
         localStorage.setItem('requests', JSON.stringify(requests));
         alert(`Donation to ${r.name} Completed successfully!`);
@@ -1086,6 +1193,7 @@ function viewFeedbacks(){
 
 function viewAvailableFood(){
     let d=document.getElementById('availableFood'); d.innerHTML='';
+    // Only show food that is 'Available' and not completed or requested
     let availableFoods = foods.filter(f => f.status === 'Available');
 
     if(availableFoods.length===0){d.innerHTML="<p class='muted'>No food available for donation right now.</p>"; return;}
@@ -1136,7 +1244,7 @@ function requestFood(foodId){
         status: 'Pending'
     });
     
-    // Temporarily mark food as requested to prevent multiple requests until one is accepted/rejected
+    // Temporarily mark food as requested to prevent multiple new requests until one is accepted/rejected
     food.status = 'Requested'; 
     
     localStorage.setItem('requests', JSON.stringify(requests));
@@ -1167,15 +1275,16 @@ function sendRequest(e){
         date: new Date().toLocaleDateString(),
         name: requesterName,
         requester: requesterUser,
-        donor: 'Unspecified', // Mark as manual, no specific donor initially
+        donor: 'Unspecified', // Crucial: Marks it as a manual request visible to all donors
         status: 'Pending'
     });
 
     localStorage.setItem('requests',JSON.stringify(requests));
-    alert("Manual Request sent successfully! Awaiting processing.");
+    alert("Manual Request sent successfully! It is now visible to all donors for fulfillment.");
     e.target.reset();
     viewMyRequests();
     showRequests(); // Update Admin's view of all requests
+    viewRequests(); // Update Donor's view of all requests (for all logged-in donors)
 }
 
 function viewMyRequests(){
@@ -1220,7 +1329,7 @@ function cancelRequest(requestId) {
         
         if (food) {
             // Check if any other requests for this food are Pending. If not, revert food status to Available.
-            const stillPending = requests.some((req, i) => req.foodId === r.foodId && req.status === 'Pending' && i !== reqIndex);
+            const stillPending = requests.some((req, i) => req.foodId === r.foodId && req.status === 'Pending' && req.requestId !== requestId);
             if (!stillPending) {
                  food.status = 'Available';
             }
@@ -1266,4 +1375,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
