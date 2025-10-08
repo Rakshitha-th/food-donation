@@ -298,8 +298,7 @@ td button { margin-right: 5px; }
             <div class="form-group"><label>Food Name</label><input id="foodName" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')" required></div>
             <div class="form-group"><label>Type</label><select id="foodType" required><option>Veg</option><option>Non-Veg</option></select></div>
             <div class="form-group"><label>Quantity (e.g., 200gms)</label><input id="foodQty" required></div>
-            <div class="form-group">
-        <label>Phone</label> <input id="foodPhone" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+            <div class="form-group"><label>Phone</label> <input id="foodPhone" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
             <div class="form-group"><label>Location</label><input id="foodLoc" required></div>
             <div class="form-group"><label>Time</label><input type="time" id="foodTime" required></div>
             <div class="form-group"><label>Image</label><input type="file" id="foodImage" ></div> 
@@ -722,9 +721,9 @@ function closeModal() {
 
 function addFood(e){e.preventDefault();
     let name=document.getElementById('foodName').value;
-    let phone=document.getElementById('phone').value;
     let type=document.getElementById('foodType').value;
     let qty=document.getElementById('foodQty').value;
+    let phone=document.getElementById('phone').value;
     let loc=document.getElementById('foodLoc').value;
     let time=document.getElementById('foodTime').value;
     let date=new Date().toLocaleDateString();
@@ -735,8 +734,8 @@ function addFood(e){e.preventDefault();
         name,
         type,
         qty,
-        loc,
         phone,
+        loc,
         time,
         date,
         donor,
@@ -1173,6 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
